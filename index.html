@@ -986,16 +986,20 @@ async function renderAdminPredictions(m){
   const [{data:matches},{data:players},{data:preds}]=await Promise.all([
     sb.from('wc_matches').select('id,team_a,team_b,flag_a,flag_b,score_a,score_b,status,stage,kickoff_time').order('kickoff_time'),
     sb.from('wc_players').select('id,name,is_disqualified').eq('is_disqualified',false).order('name'),
-    sb.from('wc_predictions').select('id,player_id,match_id,prediction,score_a,score_b,is_correct,bonus_correct,points_earned').limit(5000)
+    sb.from('wc_predictions').select('id,player_id,match_id,prediction,score_a,score_b,is_correct,bonus_correct,points_earned').range(0,4999)
   ]);
-  // Fetch fresh total_points directly from DB per player (same fix as individual view)
-  const freshTotals={};
-  await Promise.all((players||[]).map(async p=>{
-    const {data:pp}=await sb.from('wc_predictions').select('points_earned').eq('player_id',p.id);
-    freshTotals[p.id]=(pp||[]).reduce((a,b)=>a+(b.points_earned||0),0);
-  }));
-  // Inject fresh totals and sort by them
-  (players||[]).forEach(p=>p.total_points=freshTotals[p.id]||0);
+  // Run one-time recalc to fix stale totals, then use DB values
+  if(!sessionStorage.getItem('pts_fixed')){
+    for(const p of (players||[])){
+      const {data:pp}=await sb.from('wc_predictions').select('points_earned').eq('player_id',p.id).limit(500);
+      const tot=(pp||[]).reduce((a,b)=>a+(b.points_earned||0),0);
+      if(tot!==p.total_points){
+        await sb.from('wc_players').update({total_points:tot}).eq('id',p.id);
+        p.total_points=tot;
+      }
+    }
+    sessionStorage.setItem('pts_fixed','1');sessionStorage.removeItem('pts_recalc_done');
+  }
   (players||[]).sort((a,b)=>b.total_points-a.total_points);
   const ms=matches||[];const ps=players||[];const prs=preds||[];
   const predMap={};
