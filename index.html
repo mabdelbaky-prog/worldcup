@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <title>Giza World Cup 2026</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 window.toggleAdminView=function(){
@@ -39,7 +39,7 @@ window.toggleAdminView=function(){
   --cb:rgba(255,255,255,.06);--cbr:rgba(255,255,255,.12);
   --ok:#38a169;--err:#e53e3e;
 }
-body{background:var(--g1);color:#fff;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+body{background:var(--g1);color:#fff;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;max-width:100vw}
 body.ar{font-family:'Tajawal',sans-serif;direction:rtl}
 .pitch-bg{position:fixed;inset:0;z-index:0;background:linear-gradient(160deg,#0a1628 0%,#0d2b18 40%,#0a1628 100%)}
 .pitch-lines{position:absolute;inset:0;opacity:.04;background-image:repeating-linear-gradient(90deg,#fff 0,#fff 1px,transparent 1px,transparent 80px),repeating-linear-gradient(0deg,#fff 0,#fff 1px,transparent 1px,transparent 80px)}
@@ -94,10 +94,10 @@ select.form-input option{background:var(--g2)}
 .match-card{background:linear-gradient(135deg,rgba(10,92,43,.3),rgba(26,26,46,.8));border:1px solid var(--cbr);border-radius:14px;overflow:hidden;margin-bottom:14px}
 .match-card-hdr{padding:8px 16px;font-size:11px;color:var(--g6);display:flex;justify-content:space-between;background:rgba(0,0,0,.2);text-transform:uppercase;letter-spacing:1px}
 .match-body{padding:16px}
-.match-teams{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.match-teams{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
 .team{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
 .team-flag{font-size:34px;line-height:1}
-.team-name{font-size:13px;font-weight:700;text-align:center}
+.team-name{font-size:13px;font-weight:700;text-align:center;word-break:break-word;hyphens:auto}
 .match-mid{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:80px}
 .vs{font-family:var(--font-display),sans-serif;font-size:22px;color:var(--g5)}
 .live-score{font-family:var(--font-display),sans-serif;font-size:32px;color:var(--gold);line-height:1}
@@ -197,7 +197,71 @@ select.form-input option{background:var(--g2)}
 .p3 .p-block{height:70px;background:linear-gradient(135deg,#cd7f32,#8b4513)}
 .badge-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.25);border-radius:20px;padding:2px 8px;font-size:10px;color:var(--gold);margin:2px}
 @keyframes confetti{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
-@media(max-width:640px){.sidebar{display:none}.team-flag{font-size:26px}.pred-btns{flex-direction:column}.team-grid{grid-template-columns:repeat(3,1fr)}.otp-inp{width:40px;height:46px;font-size:18px}}
+@media(max-width:700px){
+  .sidebar{display:none}
+  .container{padding:0 10px 60px}
+  /* Topbar mobile */
+  .topbar{padding:0 12px;height:auto;min-height:56px;flex-wrap:wrap;gap:6px;padding-top:8px;padding-bottom:8px}
+  .topbar-logo{font-size:16px}
+  .topbar-sub{font-size:9px}
+  .topbar-right{gap:6px}
+  .user-chip span{display:none}
+  .lang-btn{padding:4px 8px;font-size:11px}
+  /* Tabs mobile */
+  .tabs{gap:2px;padding-bottom:0}
+  .tab{padding:8px 10px;font-size:11px}
+  /* Match card mobile */
+  .match-card-hdr{font-size:10px;padding:6px 12px}
+  .match-body{padding:12px}
+  .team-flag{font-size:28px}
+  .team-name{font-size:12px}
+  .match-mid{min-width:60px}
+  .live-score{font-size:26px}
+  .vs{font-size:18px}
+  .cd-num{font-size:16px}
+  .cd-unit{min-width:36px;padding:3px 6px}
+  /* Prediction buttons mobile */
+  .pred-btns{gap:6px}
+  .pred-btn{padding:10px 6px;font-size:12px}
+  /* Score input mobile */
+  .score-area{flex-wrap:wrap;gap:6px}
+  .score-inp{width:44px;font-size:16px}
+  /* Leaderboard mobile */
+  .lb-item{padding:10px 12px;gap:8px}
+  .lb-pts{font-size:18px}
+  /* Stats grid mobile */
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .stat-num{font-size:26px}
+  /* Auth mobile */
+  .auth-card{padding:24px 20px}
+  .auth-logo-text{font-size:28px}
+  /* Team grid mobile */
+  .team-grid{grid-template-columns:repeat(3,1fr)}
+  /* OTP mobile */
+  .otp-inp{width:40px;height:46px;font-size:18px}
+  /* Modal mobile */
+  .modal{padding:20px 16px}
+  .modal-title{font-size:22px}
+  /* Admin layout mobile */
+  .admin-layout{flex-direction:column}
+  .admin-main{padding:14px}
+  .admin-title{font-size:22px}
+  /* Story card mobile */
+  .story-stat-row{gap:6px}
+  .story-stat{min-width:80px;padding:8px}
+  .story-stat-num{font-size:22px}
+  /* Share card mobile */
+  .share-card{width:100%;max-width:320px}
+  /* Weekly hero mobile */
+  .weekly-hero{padding:12px;gap:10px}
+  .weekly-trophy{font-size:30px}
+  /* HOF mobile */
+  .hof-record{padding:10px;gap:8px}
+  .hof-icon{font-size:22px;width:36px}
+  .hof-val{font-size:20px}
+  /* Ball loader */
+  .ball-loader{padding:40px 20px}
+}
 </style>
 </head>
 <body>
@@ -671,11 +735,12 @@ async function renderMatchesTab(c){
   let stage='group';
   const stages=[{k:'group',l:t().group},{k:'r32',l:t().r32},{k:'qf',l:t().qf},{k:'sf',l:t().sf},{k:'final',l:t().final}];
   c.innerHTML='<div class="tabs" style="margin-bottom:0">'+stages.map(s=>'<div class="tab'+(s.k===stage?' active':'')+'" id="stab-'+s.k+'" onclick="switchStage(\''+s.k+'\')">'+s.l+'</div>').join('')+'</div><div id="matches-list" style="padding-top:16px"><div class="ball-loader"><div class="ball"></div><div class="ball-track"><div class="ball-track-inner"></div></div></div></div>';
+  window._stages=stages;
   window.switchStage=function(s){
-    stage=s;
-    stages.forEach(st=>{const e=q('#stab-'+st.k);if(e)e.className='tab'+(st.k===s?' active':'');});
-    applyStageTheme(s);
-    playAmbient(s);
+    window._currentStage=s;
+    (window._stages||[]).forEach(st=>{const e=q('#stab-'+st.k);if(e)e.className='tab'+(st.k===s?' active':'');});
+    if(typeof applyStageTheme==='function')applyStageTheme(s);
+    if(typeof playAmbient==='function')playAmbient(s);
     loadMatches(s);
   };
   loadMatches(stage);
@@ -1063,9 +1128,9 @@ async function renderAdminPredictions(m){
       const lbl=pick==='team_a'?mx.flag_a:pick==='team_b'?mx.flag_b:'⚖️';
       const scoreStr=pred.score_a!=null?'<span style="font-size:10px;opacity:.7"> '+pred.score_a+'-'+pred.score_b+'</span>':'';
       const pts=pred.points_earned||0;
-      if(!isFinished)return '<span style="color:#63b3ed;font-size:13px">'+lbl+scoreStr+'</span>'+editBtn;
-      if(pred.is_correct)return '<span style="color:#68d391;font-size:13px">'+lbl+scoreStr+(pred.bonus_correct?' 🎯':'')+' <span style="font-size:10px;color:var(--gold)">+'+pts+'</span></span>'+editBtn;
-      return '<span style="color:#fc8181;font-size:13px">'+lbl+scoreStr+' <span style="font-size:10px;color:var(--g5)">0</span></span>'+editBtn;
+      if(!isFinished)return '<span style="color:#63b3ed;font-size:12px">'+lbl+scoreStr+'</span>'+editBtn;
+      if(pred.is_correct)return '<span style="color:#68d391;font-size:12px">'+lbl+scoreStr+(pred.bonus_correct?' 🎯':'')+'<br><span style="font-size:10px;color:var(--gold)">+'+pts+'</span></span>'+editBtn;
+      return '<span style="color:#fc8181;font-size:12px">'+lbl+scoreStr+'</span>'+editBtn;
     };
 
     const showMatrix=activePlayer==='all';
@@ -1091,12 +1156,12 @@ async function renderAdminPredictions(m){
     html+='</div>';
 
     if(showMatrix){
-      html+='<div class="card" style="overflow-x:auto;padding:0">';
-      html+='<table class="data-table" style="min-width:600px">';
-      html+='<thead><tr><th style="position:sticky;left:0;background:var(--g2);z-index:2;min-width:130px">Player</th><th style="text-align:center">Pts</th>';
+      html+='<div class="card" style="overflow-x:auto;padding:0;-webkit-overflow-scrolling:touch;max-width:calc(100vw - 32px)">';
+      html+='<table class="data-table" style="min-width:500px">';
+      html+='<thead><tr><th style="position:sticky;left:0;background:var(--g2);z-index:2;min-width:110px;max-width:110px">Player</th><th style="text-align:center;min-width:36px">Pts</th>';
       filteredMs.forEach(mx=>{
         const isF=mx.status==='finished';
-        html+='<th style="text-align:center;min-width:80px;padding:6px 4px"><div style="font-size:10px;font-weight:700">'+mx.flag_a+' vs '+mx.flag_b+'</div>';
+        html+='<th style="text-align:center;min-width:60px;max-width:70px;padding:4px 2px;font-size:9px"><div style="font-size:10px;font-weight:700">'+mx.flag_a+' vs '+mx.flag_b+'</div>';
         html+='<div style="font-size:9px;color:var(--g6)">'+mx.team_a.slice(0,3).toUpperCase()+' v '+mx.team_b.slice(0,3).toUpperCase()+'</div>';
         if(isF)html+='<div style="font-size:11px;color:var(--gold);font-weight:700">'+mx.score_a+'-'+mx.score_b+'</div>';
         else html+='<div style="font-size:9px;color:var(--g5)">Pending</div>';
@@ -1105,11 +1170,11 @@ async function renderAdminPredictions(m){
       html+='</tr></thead><tbody>';
       playerStats.forEach(p=>{
         const pct=p.filteredPreds?Math.round(p.filteredCorrect/Math.max(1,finishedMs.filter(mx=>predMap[p.id]?.[mx.id]).length)*100):0;
-        html+='<tr><td style="position:sticky;left:0;background:var(--g2);z-index:1"><strong>'+p.name+'</strong><div style="font-size:10px;color:var(--g6)">'+p.filteredCorrect+' correct · '+pct+'%</div></td>';
+        html+='<tr><td style="position:sticky;left:0;background:var(--g2);z-index:1;min-width:110px;max-width:110px;word-break:break-word"><strong style="font-size:12px">'+p.name+'</strong><div style="font-size:10px;color:var(--g6)">'+p.filteredCorrect+' correct · '+pct+'%</div></td>';
         html+='<td style="text-align:center;font-family:\'Bebas Neue\',sans-serif;font-size:20px;color:var(--gold)">'+p.filteredPts+'</td>';
         filteredMs.forEach(mx=>{
           const pred=predMap[p.id]?.[mx.id];
-          html+='<td style="text-align:center;padding:6px 4px">'+pickLabel(pred,mx,p.id)+'</td>';
+          html+='<td style="text-align:center;padding:4px 2px">'+pickLabel(pred,mx,p.id)+'</td>';
         });
         html+='</tr>';
       });
