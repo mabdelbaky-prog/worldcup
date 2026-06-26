@@ -637,8 +637,8 @@ function attachMatchHandlers(matches,pm){
       const isKO=m.stage!=='group';
       const sa=document.getElementById('score-area-'+mid);
       if(sa){
-        const koExtra=isKO?'<div class="ko-btns"><div class="ko-btn active" data-ko="normal" data-mid="'+mid+'">⏱ '+t().mins+'</div><div class="ko-btn" data-ko="et" data-mid="'+mid+'">⏰ '+t().et+'</div><div class="ko-btn" data-ko="pen" data-mid="'+mid+'">🥅 '+t().pen+'</div></div>':'';
-        sa.innerHTML=koExtra+'<div class="score-area"><span class="score-lbl">'+t().score+' ('+t().optional+')</span><input class="score-inp" id="sca-'+mid+'" type="number" min="0" max="20" placeholder="0"/><span style="font-size:18px;font-weight:700;color:var(--g5)">-</span><input class="score-inp" id="scb-'+mid+'" type="number" min="0" max="20" placeholder="0"/></div><button class="confirm-btn" onclick="openConfirm(\''+mid+'\',\''+pick+'\')">🔒 '+(LANG==='ar'?'تأكيد التنبؤ':'Confirm Prediction')+'</button>';
+        const koExtra=isKO?'<details style="margin:8px 0"><summary style="font-size:11px;color:var(--g6);cursor:pointer;user-select:none">⏱ '+(LANG==='ar'?'وقت إضافي / ركلات؟ (اختياري)':'Extra time / penalties? (Optional)')+'</summary><div class="ko-btns" style="margin-top:8px"><div class="ko-btn active" data-ko="normal" data-mid="'+mid+'">⏱ '+t().mins+'</div><div class="ko-btn" data-ko="et" data-mid="'+mid+'">⏰ '+t().et+'</div><div class="ko-btn" data-ko="pen" data-mid="'+mid+'">🥅 '+t().pen+'</div></div></details>':'';
+        sa.innerHTML=koExtra+'<div class="score-area"><span class="score-lbl">'+t().score+' ('+t().optional+')</span><input class="score-inp" id="sca-'+mid+'" type="number" min="0" max="20" placeholder=""/><span style="font-size:18px;font-weight:700;color:var(--g5)">-</span><input class="score-inp" id="scb-'+mid+'" type="number" min="0" max="20" placeholder=""/></div><button class="confirm-btn" onclick="openConfirm(\''+mid+'\',\''+pick+'\')">🔒 '+(LANG==='ar'?'تأكيد التنبؤ':'Confirm Prediction')+'</button>';
         sa.style.display='block';
         sa.querySelectorAll('.ko-btn').forEach(kb=>{kb.addEventListener('click',function(){sa.querySelectorAll('.ko-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');});});
       }
@@ -776,9 +776,6 @@ async function renderAdminPredictions(m){
   const ms=matches||[];const ps=players||[];const prs=preds||[];
   const predMap={};
   prs.forEach(p=>{if(!predMap[p.player_id])predMap[p.player_id]={};predMap[p.player_id][p.match_id]=p;});
-  // Debug: log Mohamed's predictions
-  const mab=ps.find(p=>p.name&&p.name.toLowerCase().includes('abdelbaky'));
-  if(mab){console.log('Mohamed id:',mab.id,'predictions:',Object.keys(predMap[mab.id]||{}).length,'matches:',ms.length);}
 
   const stages=['all','group','r32','qf','sf','final'];
   let activeStage='all';
@@ -788,7 +785,6 @@ async function renderAdminPredictions(m){
   window.openPredEdit=async function(playerId,matchId){
     const player=ps.find(p=>p.id===playerId);
     const mx=ms.find(x=>x.id===matchId);
-    // Always fetch fresh from DB — never trust stale predMap
     const {data:freshPred}=await sb.from('wc_predictions').select('*').eq('player_id',playerId).eq('match_id',matchId).maybeSingle();
     const pred=freshPred||predMap[playerId]?.[matchId];
     if(!player||!mx)return;
@@ -859,7 +855,6 @@ async function renderAdminPredictions(m){
       is_correct,bonus_correct,points_earned};
 
     let err;
-    // Always check DB directly to avoid stale predMap causing duplicate insert
     const {data:existingPred}=await sb.from('wc_predictions').select('id').eq('player_id',playerId).eq('match_id',matchId).maybeSingle();
     if(existingPred&&existingPred.id){
       ({error:err}=await sb.from('wc_predictions').update(payload).eq('id',existingPred.id));
@@ -868,14 +863,12 @@ async function renderAdminPredictions(m){
     }
     if(err){toast('Error: '+err.message,'err');return;}
 
-    // Always recalc total from scratch — never use delta to avoid stale state bugs
     const {data:allPreds}=await sb.from('wc_predictions').select('points_earned').eq('player_id',playerId);
     const newTotal=(allPreds||[]).reduce((a,b)=>a+(b.points_earned||0),0);
     await sb.from('wc_players').update({total_points:newTotal}).eq('id',playerId);
 
     document.getElementById('pred-edit-overlay')?.remove();
     toast('Prediction saved','ok');
-    // Reload fresh from DOM reference
     const freshM=document.getElementById('admin-main');
     if(freshM)await loadAdminSection('predictions');
   };
@@ -888,7 +881,7 @@ async function renderAdminPredictions(m){
     const isF=mx&&mx.status==='finished';
     const {error}=await sb.from('wc_predictions').delete().eq('id',pred.id);
     if(error){toast('Error: '+error.message,'err');return;}
-    // Recalc total from scratch after delete
+    // Subtract points if finished
     const {data:remainingPreds}=await sb.from('wc_predictions').select('points_earned').eq('player_id',playerId);
     const newTotal=(remainingPreds||[]).reduce((a,b)=>a+(b.points_earned||0),0);
     await sb.from('wc_players').update({total_points:newTotal}).eq('id',playerId);
@@ -974,7 +967,6 @@ async function renderAdminPredictions(m){
     } else {
       const player=ps.find(p=>p.id===activePlayer);
       const stat=playerStats.find(p=>p.id===activePlayer);
-      // Fetch this player's predictions fresh from DB to avoid stale predMap
       const {data:freshPreds}=await sb.from('wc_predictions').select('*').eq('player_id',activePlayer).limit(500);
       const freshMap={};
       (freshPreds||[]).forEach(p=>freshMap[p.match_id]=p);
@@ -1239,9 +1231,9 @@ async function renderAdminPlayers(m){
       ov.innerHTML='<div class="modal"><div class="modal-title">👁️ Account Info</div>'+
         '<div class="modal-sub"><strong>'+name+'</strong></div>'+
         '<div style="background:rgba(0,0,0,.3);border-radius:8px;padding:14px;margin-bottom:16px">'+
-        '<div style="font-size:11px;color:var(--g6);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Email</div>'+
+        '<div style="font-size:11px;color:var(--g6);margin-bottom:4px">EMAIL</div>'+
         '<div style="font-weight:700;margin-bottom:14px">'+data.email+'</div>'+
-        '<div style="font-size:11px;color:var(--g6);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Password</div>'+
+        '<div style="font-size:11px;color:var(--g6);margin-bottom:6px">PASSWORD</div>'+
         '<div style="font-weight:700;font-size:18px;background:rgba(0,0,0,.3);padding:10px;border-radius:6px;letter-spacing:2px;margin-bottom:10px">'+(data.plain_password||'<span style="color:var(--g5);font-size:12px;font-weight:400">Not available — use Reset</span>')+'</div>'+
         '</div>'+
         '<div style="display:flex;gap:10px">'+
@@ -1258,12 +1250,11 @@ async function renderAdminPlayers(m){
         {n:'Japan',f:'🇯🇵'},{n:'USA',f:'🇺🇸'},{n:'Mexico',f:'🇲🇽'},{n:'Canada',f:'🇨🇦'},
         {n:'Uruguay',f:'🇺🇾'},{n:'Colombia',f:'🇨🇴'},{n:'Ecuador',f:'🇪🇨'},{n:'Chile',f:'🇨🇱'},
         {n:'Peru',f:'🇵🇪'},{n:'Venezuela',f:'🇻🇪'},{n:'Bolivia',f:'🇧🇴'},{n:'Paraguay',f:'🇵🇾'},
-        {n:'Panama',f:'🇵🇦'},{n:'Costa Rica',f:'🇨🇷'},{n:'Honduras',f:'🇭🇳'},{n:'Jamaica',f:'🇯🇲'},
         {n:'Egypt',f:'🇪🇬'},{n:'Nigeria',f:'🇳🇬'},{n:'Ghana',f:'🇬🇭'},{n:"Cote d'Ivoire",f:'🇨🇮'},
         {n:'Cameroon',f:'🇨🇲'},{n:'Tunisia',f:'🇹🇳'},{n:'Algeria',f:'🇩🇿'},{n:'South Africa',f:'🇿🇦'},
-        {n:'DR Congo',f:'🇨🇩'},{n:'Mali',f:'🇲🇱'},{n:'Saudi Arabia',f:'🇸🇦'},{n:'Iran',f:'🇮🇷'},
-        {n:'Australia',f:'🇦🇺'},{n:'South Korea',f:'🇰🇷'},{n:'Qatar',f:'🇶🇦'},{n:'Serbia',f:'🇷🇸'},
-        {n:'Poland',f:'🇵🇱'},{n:'Switzerland',f:'🇨🇭'},{n:'Denmark',f:'🇩🇰'},{n:'Ukraine',f:'🇺🇦'}
+        {n:'Australia',f:'🇦🇺'},{n:'South Korea',f:'🇰🇷'},{n:'Saudi Arabia',f:'🇸🇦'},{n:'Iran',f:'🇮🇷'},
+        {n:'Serbia',f:'🇷🇸'},{n:'Poland',f:'🇵🇱'},{n:'Switzerland',f:'🇨🇭'},{n:'Denmark',f:'🇩🇰'},
+        {n:'USA',f:'🇺🇸'},{n:'Bosnia and Herzegovina',f:'🇧🇦'},{n:'Qatar',f:'🇶🇦'},{n:'Ukraine',f:'🇺🇦'}
       ];
       let selT=null;
       const ov=document.createElement('div');ov.className='overlay';
@@ -1276,7 +1267,6 @@ async function renderAdminPlayers(m){
         '<button class="btn btn-gold" style="flex:1;width:auto" id="cw-btn" disabled onclick="cwSave(\''+id+'\',this)">Save Pick</button>'+
         '</div></div>';
       document.getElementById('app').appendChild(ov);
-      window._cwt=CWT;
       window.cwPick=function(i){
         document.querySelectorAll('[id^="cwp-"]').forEach(e=>e.classList.remove('sel'));
         document.getElementById('cwp-'+i).classList.add('sel');
