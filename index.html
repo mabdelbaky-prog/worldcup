@@ -576,9 +576,17 @@ function renderPlayer(app){
   con.appendChild(tabs);con.appendChild(content);app.appendChild(con);
   // STAGE THEME
 function applyStageTheme(stage){
-  document.body.classList.remove('stage-group','stage-r32','stage-qf','stage-sf','stage-final');
-  if(stage&&stage!=='group')document.body.classList.add('stage-'+stage);
-  else document.body.classList.add('stage-group');
+  const themes={
+    group:{bg:'linear-gradient(160deg,#0a1628 0%,#0d2b18 40%,#0a1628 100%)',accent:'#0e7a39'},
+    r32:{bg:'linear-gradient(160deg,#0a1220 0%,#0d1f35 40%,#0a1220 100%)',accent:'#1a6b8a'},
+    qf:{bg:'linear-gradient(160deg,#1a1000 0%,#2e1e00 40%,#1a1000 100%)',accent:'#8a5a0a'},
+    sf:{bg:'linear-gradient(160deg,#1a0005 0%,#2e0010 40%,#1a0005 100%)',accent:'#8a0a1a'},
+    final:{bg:'linear-gradient(160deg,#1a1500 0%,#2e2500 40%,#1a1500 100%)',accent:'#8a6b00'}
+  };
+  const theme=themes[stage]||themes.group;
+  const pitchEl=document.querySelector('.pitch-bg');
+  if(pitchEl)pitchEl.style.background=theme.bg;
+  document.documentElement.style.setProperty('--gold',stage==='final'?'#ffd700':'#f5c518');
 }
 
 // CONSENSUS METER
@@ -601,11 +609,18 @@ async function loadConsensus(matchId,isKO){
 }
 
 // REVEAL MOMENT
+window.doRevealById=function(id){
+  const d=(window._revealStore||{})[id];if(!d)return;
+  doRevealCore(d.mid,d.isCorrect,d.pts,d.revealKey,d.fa,d.ta,d.fb,d.tb,d.sa,d.sb2,d.myPick);
+};
 window.doReveal=function(btn,matchId,isCorrectStr,ptsStr,revealKey,fa,ta,fb,tb,saStr,sb2Str,myPick){
   const isCorrect=isCorrectStr===true||isCorrectStr==='true';
   const pts=parseInt(ptsStr)||0;
   const sa=parseInt(saStr)||0;
   const sb2=parseInt(sb2Str)||0;
+  doRevealCore(matchId,isCorrect,pts,revealKey,fa,ta,fb,tb,sa,sb2,myPick);
+};
+function doRevealCore(matchId,isCorrect,pts,revealKey,fa,ta,fb,tb,sa,sb2,myPick){
   const ov=document.createElement('div');ov.className='reveal-overlay';
   document.body.appendChild(ov);
   if(navigator.vibrate)navigator.vibrate(isCorrect?[100,50,100]:[300]);
@@ -617,6 +632,7 @@ window.doReveal=function(btn,matchId,isCorrectStr,ptsStr,revealKey,fa,ta,fb,tb,s
       const resultText=isCorrect?(LANG==='ar'?'✅ أصبت!':'✅ CORRECT!'):(LANG==='ar'?'❌ خطأ':'❌ WRONG');
       // Store reveal data globally to avoid quote escaping
       window._revealData={matchId,revealKey,isCorrect,pts,fa,ta,fb,tb,sa,sb2,myPick};
+  // also store for doRevealById
       ov.innerHTML='<div class="reveal-result '+(isCorrect?'reveal-correct':'reveal-wrong')+'">'+resultText+'</div>'+
         '<div style="font-size:32px;color:var(--gold);margin-top:8px;font-weight:800">'+
         (isCorrect?'+'+pts+' PTS':'+0 PTS')+'</div>'+
@@ -740,7 +756,6 @@ async function renderMatchesTab(c){
     window._currentStage=s;
     (window._stages||[]).forEach(st=>{const e=q('#stab-'+st.k);if(e)e.className='tab'+(st.k===s?' active':'');});
     if(typeof applyStageTheme==='function')applyStageTheme(s);
-    if(typeof playAmbient==='function')playAmbient(s);
     loadMatches(s);
   };
   loadMatches(stage);
@@ -803,7 +818,10 @@ function matchCardHTML(m,pred){
   let revealHTML='';
   if(m.status==='finished'){
     if(!alreadyRevealed){
-      revealHTML='<button class="reveal-btn" onclick="doReveal(this,\''+m.id+'\','+isCorrect+','+pred.points_earned+',\''+revealKey+'\',\''+m.flag_a+'\',\''+m.team_a+'\',\''+m.flag_b+'\',\''+m.team_b+'\','+m.score_a+','+m.score_b+',\''+myPick+'\')">👁️ '+(LANG==='ar'?'اكشف نتيجتك':'Tap to Reveal Your Result')+'</button>';
+      if(!window._revealStore)window._revealStore={};
+  const revealId='rv_'+m.id.replace(/-/g,'');
+  window._revealStore[revealId]={mid:m.id,isCorrect,pts:pred.points_earned,revealKey,fa:m.flag_a,ta:m.team_a,fb:m.flag_b,tb:m.team_b,sa:m.score_a,sb2:m.score_b,myPick};
+  revealHTML='<button class="reveal-btn" data-rid="'+revealId+'" onclick="doRevealById(this.dataset.rid)">👁️ '+(LANG==='ar'?'اكشف نتيجتك':'Tap to Reveal Your Result')+'</button>';
     }else{
       revealHTML='<div class="result-reveal '+(isCorrect?'ok':'bad')+'">'+(isCorrect?'✅ '+t().correct+' +'+pred.points_earned+t().pts:'❌ '+t().wrong)+'</div>';
       // consensus meter (after kickoff)
@@ -985,22 +1003,10 @@ async function renderAdminPredictions(m){
   m.innerHTML='<div class="admin-title">Predictions</div><div class="admin-sub">Who predicted what — verify the points system</div><div class="ball-loader"><div class="ball"></div><div class="ball-track"><div class="ball-track-inner"></div></div></div>';
   const [{data:matches},{data:players},{data:preds}]=await Promise.all([
     sb.from('wc_matches').select('id,team_a,team_b,flag_a,flag_b,score_a,score_b,status,stage,kickoff_time').order('kickoff_time'),
-    sb.from('wc_players').select('id,name,is_disqualified').eq('is_disqualified',false).order('name'),
+    sb.from('wc_players').select('id,name,total_points,is_disqualified').eq('is_disqualified',false).order('total_points',{ascending:false}),
     sb.from('wc_predictions').select('id,player_id,match_id,prediction,score_a,score_b,is_correct,bonus_correct,points_earned').range(0,4999)
   ]);
-  // Run one-time recalc to fix stale totals, then use DB values
-  if(!sessionStorage.getItem('pts_fixed')){
-    for(const p of (players||[])){
-      const {data:pp}=await sb.from('wc_predictions').select('points_earned').eq('player_id',p.id).limit(500);
-      const tot=(pp||[]).reduce((a,b)=>a+(b.points_earned||0),0);
-      if(tot!==p.total_points){
-        await sb.from('wc_players').update({total_points:tot}).eq('id',p.id);
-        p.total_points=tot;
-      }
-    }
-    sessionStorage.setItem('pts_fixed','1');sessionStorage.removeItem('pts_recalc_done');
-  }
-  (players||[]).sort((a,b)=>b.total_points-a.total_points);
+  // Already sorted by DB
   const ms=matches||[];const ps=players||[];const prs=preds||[];
   const predMap={};
   prs.forEach(p=>{if(!predMap[p.player_id])predMap[p.player_id]={};predMap[p.player_id][p.match_id]=p;});
@@ -1704,30 +1710,6 @@ async function renderTournamentStory(container){
 window.toggleLang=function(){LANG=LANG==='en'?'ar':'en';document.body.className=LANG==='ar'?'ar':'';render();};
 window.doLogout=function(){PLAYER=null;render();};
 emailjs.init(EJS_KEY);
-
-// ── STAGE MUSIC (Web Audio ambient) ──
-let ambientCtx=null,ambientNodes=[];
-function stopAmbient(){ambientNodes.forEach(n=>{try{n.stop();}catch(e){}});ambientNodes=[];}
-function playAmbient(stage){
-  if(!window.AudioContext&&!window.webkitAudioContext)return;
-  stopAmbient();
-  try{
-    ambientCtx=ambientCtx||new(window.AudioContext||window.webkitAudioContext)();
-    const freqs={group:[220,330,440],r32:[260,390,520],qf:[300,450,600],sf:[350,525,700],final:[400,600,800]};
-    const f=freqs[stage]||freqs.group;
-    f.forEach((freq,i)=>{
-      const osc=ambientCtx.createOscillator();
-      const gain=ambientCtx.createGain();
-      osc.connect(gain);gain.connect(ambientCtx.destination);
-      osc.type='sine';osc.frequency.value=freq;
-      gain.gain.setValueAtTime(0,ambientCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.02,ambientCtx.currentTime+2);
-      gain.gain.linearRampToValueAtTime(0.01,ambientCtx.currentTime+8);
-      osc.start();osc.stop(ambientCtx.currentTime+10);
-      ambientNodes.push(osc);
-    });
-  }catch(e){}
-}
 
 render();
 
