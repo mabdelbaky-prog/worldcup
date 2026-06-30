@@ -661,34 +661,45 @@ window.closeReveal=function(){
 // SHARE CARD
 function showShareCard(matchId,isCorrect,pts,fa,ta,fb,tb,sa,sb2,myPick){
   const pickLbl=myPick==='team_a'?fa+' '+ta:myPick==='team_b'?fb+' '+tb:'⚖️ Draw';
-  const ov=document.createElement('div');ov.className='share-card-wrap';
-  ov.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
-  ov.innerHTML='<div style="width:100%;max-width:360px">'+
-    '<div class="share-card" id="share-card-el">'+
-    '<div class="share-card-header">'+
-      '<div class="share-card-logo">⚽ GIZA WORLD CUP 2026</div>'+
-    '</div>'+
-    '<div class="share-card-body">'+
-      '<div class="share-card-match">'+
-        '<div class="share-card-team"><div class="share-card-flag">'+fa+'</div><div class="share-card-name">'+ta+'</div></div>'+
-        '<div class="share-card-score">'+sa+'-'+sb2+'</div>'+
-        '<div class="share-card-team"><div class="share-card-flag">'+fb+'</div><div class="share-card-name">'+tb+'</div></div>'+
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.93);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:Inter,sans-serif';
+  const cardBg=isCorrect?'linear-gradient(135deg,#0d2b18,#1a3a2a)':'linear-gradient(135deg,#2a0d0d,#1a1a1a)';
+  const accentColor=isCorrect?'#68d391':'#fc8181';
+  const accentBorder=isCorrect?'#38a169':'#e53e3e';
+  ov.innerHTML=
+    '<div style="width:100%;max-width:320px;border-radius:20px;overflow:hidden;background:'+cardBg+';border:2px solid '+accentBorder+';box-shadow:0 20px 60px rgba(0,0,0,0.7)">'+
+      // Header
+      '<div style="background:rgba(0,0,0,0.4);padding:14px 16px;text-align:center;border-bottom:1px solid rgba(245,197,24,0.3)">'+
+        '<div style="font-size:11px;color:#f5c518;font-weight:800;letter-spacing:3px">⚽ GIZA WORLD CUP 2026</div>'+
       '</div>'+
-      '<div class="share-card-result '+(isCorrect?'ok':'bad')+'">'+
-        (isCorrect?'✅ CORRECT PREDICTION':'❌ WRONG PREDICTION')+
+      // Teams
+      '<div style="padding:20px 16px 0">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
+          '<div style="text-align:center;flex:1"><div style="font-size:36px">'+fa+'</div><div style="font-size:12px;font-weight:700;margin-top:4px;color:#fff">'+ta+'</div></div>'+
+          '<div style="text-align:center;padding:0 8px"><div style="font-size:28px;font-weight:800;color:#f5c518;line-height:1">'+sa+' - '+sb2+'</div><div style="font-size:10px;color:#718096;margin-top:2px">FINAL</div></div>'+
+          '<div style="text-align:center;flex:1"><div style="font-size:36px">'+fb+'</div><div style="font-size:12px;font-weight:700;margin-top:4px;color:#fff">'+tb+'</div></div>'+
+        '</div>'+
+        // Result banner
+        '<div style="background:rgba(0,0,0,0.3);border:1px solid '+accentBorder+';border-radius:10px;padding:12px;text-align:center;margin-bottom:12px">'+
+          '<div style="font-size:18px;font-weight:800;color:'+accentColor+'">'+( isCorrect?'✅ CORRECT!':'❌ WRONG')+'</div>'+
+          '<div style="font-size:12px;color:#a0aec0;margin-top:4px">My Pick: <strong style="color:#fff">'+pickLbl+'</strong></div>'+
+        '</div>'+
+        // Points
+        '<div style="text-align:center;margin-bottom:16px">'+
+          '<div style="font-size:48px;font-weight:800;color:#f5c518;line-height:1">+'+(isCorrect?pts:0)+'</div>'+
+          '<div style="font-size:11px;color:#718096;letter-spacing:2px;text-transform:uppercase;margin-top:4px">Points Earned</div>'+
+        '</div>'+
       '</div>'+
-      '<div style="font-size:12px;color:var(--g6);text-align:center;margin-bottom:8px">My Pick: <strong>'+pickLbl+'</strong></div>'+
-      '<div class="share-card-pts">+'+(isCorrect?pts:0)+'</div>'+
-      '<div class="share-card-pts-lbl">POINTS EARNED</div>'+
-      '<div class="share-card-player">'+PLAYER.name+'</div>'+
+      // Footer
+      '<div style="background:rgba(0,0,0,0.3);padding:10px 16px;display:flex;justify-content:space-between;align-items:center">'+
+        '<div style="font-size:11px;color:#718096">'+PLAYER.name+'</div>'+
+        '<div style="font-size:10px;color:#4a5568;letter-spacing:1px">GIZA SEEDS & HERBS</div>'+
+      '</div>'+
     '</div>'+
-    '<div class="share-card-footer">GIZA SEEDS & HERBS · WORLD CUP PREDICTOR</div>'+
-    '</div>'+
-    '<div class="share-actions">'+
-      '<button class="btn btn-outline" style="flex:1" onclick="closeShareCard()">Close</button>'+
-      '<button class="btn btn-gold" style="flex:1;width:auto" onclick="screenshotCard()">📸 Screenshot</button>'+
-    '</div>'+
-  '</div>';
+    '<div style="display:flex;gap:10px;margin-top:16px;width:100%;max-width:320px">'+
+      '<button onclick="closeShareCard()" style="flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Close</button>'+
+      '<button onclick="screenshotCard()" style="flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#f5c518,#c9a000);color:#1a1a2e;font-size:14px;font-weight:700;cursor:pointer">📸 Screenshot</button>'+
+    '</div>';
   document.body.appendChild(ov);
 }
 
@@ -798,7 +809,11 @@ function matchCardHTML(m,pred){
   const act=outcome(m);const myPick=pred?.prediction;const isCorrect=pred?.is_correct;
   let midHTML='';
   if(m.status==='live')midHTML='<div class="live-badge">🔴 LIVE</div><div class="live-score">'+(m.score_a!=null?m.score_a+' - '+m.score_b:'- -')+'</div>';
-  else if(m.status==='finished')midHTML='<div class="ft-badge">'+(LANG==='ar'?'انتهت':'FT')+'</div><div class="live-score">'+m.score_a+' - '+m.score_b+'</div>';
+  else if(m.status==='finished'){
+    const ftLabel=m.went_to_penalties?(LANG==='ar'?'بعد الترجيح':'AP'):m.went_to_et?(LANG==='ar'?'بعد الإضافي':'AET'):(LANG==='ar'?'انتهت':'FT');
+    const penNote=m.went_to_penalties&&m.penalty_score_a!=null&&m.penalty_score_b!=null?'<div style="font-size:11px;color:var(--gold);margin-top:2px">⚽ '+m.penalty_score_a+'-'+m.penalty_score_b+' '+(LANG==='ar'?'ركلات ترجيح':'pens')+'</div>':'';
+    midHTML='<div class="ft-badge">'+ftLabel+'</div><div class="live-score">'+m.score_a+' - '+m.score_b+'</div>'+penNote;
+  }
   else midHTML='<div class="vs">VS</div><div class="countdown" id="cd-'+m.id+'"></div>';
   let predHTML='';
   if(!pred&&!isLocked&&m.status==='upcoming'){
@@ -969,7 +984,23 @@ async function renderMineTab(c){
   html+=(preds||[]).map(pred=>{
     const m=pred.wc_matches;if(!m)return '';
     const lbl=pred.prediction==='team_a'?m.flag_a+' '+m.team_a:pred.prediction==='team_b'?m.flag_b+' '+m.team_b:'⚖️ '+t().draw;
-    return '<div class="card" style="padding:14px;margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--g6)">'+stageLabel(m.stage)+'</span><span style="font-size:11px;color:var(--g6)">'+fmtDate(m.kickoff_time)+'</span></div><div style="font-weight:700;margin-bottom:6px">'+m.flag_a+' '+m.team_a+' vs '+m.flag_b+' '+m.team_b+'</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;color:var(--g6)">'+t().yourPick+': <span style="color:#fff;font-weight:700">'+lbl+'</span>'+(pred.score_a!=null?' ('+pred.score_a+'-'+pred.score_b+')':'')+'</div>'+(m.status==='finished'?'<div class="result-reveal '+(pred.is_correct?'ok':'bad')+'" style="padding:3px 10px;margin:0">'+(pred.is_correct?'✅ +'+pred.points_earned+t().pts:'❌ Wrong')+'</div>':'<span class="chip chip-upcoming">Pending</span>')+'</div></div>';
+    const mineRevKey='revealed_'+PLAYER.id+'_'+pred.match_id;
+    const mineRev=sessionStorage.getItem(mineRevKey);
+    const mineRid='mrv_'+pred.match_id.replace(/-/g,'');
+    if(!window._revealStore)window._revealStore={};
+    window._revealStore[mineRid]={mid:pred.match_id,isCorrect:pred.is_correct,pts:pred.points_earned,revealKey:mineRevKey,fa:m.flag_a,ta:m.team_a,fb:m.flag_b,tb:m.team_b,sa:m.score_a,sb2:m.score_b,myPick:pred.prediction};
+    const showRevBtn=m.status==='finished'&&!mineRev;
+    const showResult=m.status==='finished'&&mineRev;
+    return '<div class="card" style="padding:14px;margin-bottom:10px">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--g6)">'+stageLabel(m.stage)+'</span><span style="font-size:11px;color:var(--g6)">'+fmtDate(m.kickoff_time)+'</span></div>'+
+      '<div style="font-weight:700;margin-bottom:6px">'+m.flag_a+' '+m.team_a+' vs '+m.flag_b+' '+m.team_b+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center">'+
+        '<div style="font-size:12px;color:var(--g6)">'+t().yourPick+': <span style="color:#fff;font-weight:700">'+lbl+'</span>'+(pred.score_a!=null?' ('+pred.score_a+'-'+pred.score_b+')':'')+'</div>'+
+        (showResult?'<div class="result-reveal '+(pred.is_correct?'ok':'bad')+'" style="padding:3px 10px;margin:0">'+(pred.is_correct?'✅ +'+pred.points_earned+t().pts:'❌ Wrong')+'</div>':'')+
+        (m.status!=='finished'?'<span class="chip chip-upcoming">Pending</span>':'')+
+      '</div>'+
+      (showRevBtn?'<button class="reveal-btn" style="margin-top:10px" data-rid="'+mineRid+'" onclick="doRevealById(this.dataset.rid)">👁️ '+(LANG='ar'?'اكشف نتيجتك':'Tap to Reveal')+'</button>':'')+
+    '</div>';
   }).join('');
   c.innerHTML=html;
 }
@@ -1297,9 +1328,23 @@ async function renderAdminMatches(m){
       '<div class="form-group" style="margin:0"><label class="form-label">Group (A-L)</label><input class="form-input" id="mgr" placeholder="A" value="'+(ev?ev.group_name||'':'')+'"/></div>'+
       '<div class="form-group" style="margin:0"><label class="form-label">Match Day</label><input class="form-input" id="mmd" type="number" placeholder="1" value="'+(ev?ev.match_day||1:1)+'"/></div>'+
       '<div class="form-group" style="margin:0"><label class="form-label">Status</label><select class="form-input" id="mss"><option value="upcoming"'+(!ev||ev.status==='upcoming'?' selected':'')+'>Upcoming</option><option value="live"'+(ev?.status==='live'?' selected':'')+'>Live</option><option value="finished"'+(ev?.status==='finished'?' selected':'')+'>Finished</option></select></div>'+
-      '<div class="form-group" style="margin:0"><label class="form-label">Score A</label><input class="form-input" id="msa" type="number" min="0" value="'+(ev&&ev.score_a!=null?ev.score_a:'')+'"/></div>'+
-      '<div class="form-group" style="margin:0"><label class="form-label">Score B</label><input class="form-input" id="msb" type="number" min="0" value="'+(ev&&ev.score_b!=null?ev.score_b:'')+'"/></div>'+
-      '</div><div style="display:flex;gap:10px;margin-top:14px">'+
+      '<div class="form-group" style="margin:0"><label class="form-label">Score A (90 min / Full-Time)</label><input class="form-input" id="msa" type="number" min="0" value="'+(ev&&ev.score_a!=null?ev.score_a:'')+'"/></div>'+
+      '<div class="form-group" style="margin:0"><label class="form-label">Score B (90 min / Full-Time)</label><input class="form-input" id="msb" type="number" min="0" value="'+(ev&&ev.score_b!=null?ev.score_b:'')+'"/></div>'+
+      '</div>'+
+      '<div id="ko-result-fields" style="display:'+((ev&&ev.stage&&ev.stage!=='group')?'block':'none')+';margin-top:14px;padding-top:14px;border-top:1px solid var(--cbr)">'+
+        '<div class="form-label" style="margin-bottom:10px">Knockout Result</div>'+
+        '<div style="display:flex;gap:10px;margin-bottom:12px">'+
+          '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="radio" name="mko_result" value="normal" id="mko_normal"'+(!ev||(!ev.went_to_et&&!ev.went_to_penalties)?' checked':'')+'/> 90 Minutes</label>'+
+          '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="radio" name="mko_result" value="et" id="mko_et"'+(ev&&ev.went_to_et&&!ev.went_to_penalties?' checked':'')+'/> Extra Time</label>'+
+          '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px"><input type="radio" name="mko_result" value="pen" id="mko_pen"'+(ev&&ev.went_to_penalties?' checked':'')+'/> Penalties</label>'+
+        '</div>'+
+        '<div id="pen-score-fields" style="display:'+(ev&&ev.went_to_penalties?'grid':'none')+';grid-template-columns:1fr 1fr;gap:12px">'+
+          '<div class="form-group" style="margin:0"><label class="form-label">Penalty Score A</label><input class="form-input" id="mpa" type="number" min="0" placeholder="e.g. 5" value="'+(ev&&ev.penalty_score_a!=null?ev.penalty_score_a:'')+'"/></div>'+
+          '<div class="form-group" style="margin:0"><label class="form-label">Penalty Score B</label><input class="form-input" id="mpb" type="number" min="0" placeholder="e.g. 4" value="'+(ev&&ev.penalty_score_b!=null?ev.penalty_score_b:'')+'"/></div>'+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--g6);margin-top:8px">⚠️ For ET/Penalties, Score A/B above should be the 90-minute (or 120-minute) result before the shootout. The penalty winner is decided by the penalty score below.</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:10px;margin-top:14px">'+
       '<button class="btn btn-gold" onclick="saveMatch()">'+(ev?'Update':'Add Match')+'</button>'+
       (ev?'<button class="btn btn-outline" onclick="cancelEdit()">Cancel</button>':'')+
       '</div></div>'+
@@ -1316,8 +1361,31 @@ async function renderAdminMatches(m){
       '<tbody>'+(matches||[]).map(x=>'<tr><td><strong>'+x.flag_a+' '+x.team_a+' vs '+x.flag_b+' '+x.team_b+'</strong></td><td style="font-size:12px;color:var(--g6)">'+fmtDate(x.kickoff_time)+'</td><td><span class="chip chip-upcoming" style="font-size:10px">'+x.stage+'</span></td><td><span class="chip chip-'+x.status+'">'+x.status+'</span></td><td>'+(x.score_a!=null?x.score_a+'-'+x.score_b:'-')+'</td><td><button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="editMatch(\''+x.id+'\')">✏️</button></td></tr>').join('')+
       '</tbody></table></div>';
 
+    // Show/hide knockout result fields based on stage selection
+    const mstSel=q('#mst');
+    if(mstSel){
+      const toggleKoFields=()=>{
+        const koDiv=q('#ko-result-fields');
+        if(koDiv)koDiv.style.display=mstSel.value!=='group'?'block':'none';
+      };
+      mstSel.addEventListener('change',toggleKoFields);
+      toggleKoFields();
+    }
+    document.querySelectorAll('input[name="mko_result"]').forEach(r=>{
+      r.addEventListener('change',function(){
+        const penDiv=q('#pen-score-fields');
+        if(penDiv)penDiv.style.display=this.value==='pen'?'grid':'none';
+      });
+    });
+
     window.saveMatch=async function(){
-      const payload={team_a:q('#mta').value,flag_a:q('#mfa').value,team_b:q('#mtb').value,flag_b:q('#mfb').value,kickoff_time:q('#mko').value,stage:q('#mst').value,group_name:q('#mgr').value||null,match_day:parseInt(q('#mmd').value)||1,status:q('#mss').value,score_a:q('#msa').value!==''?parseInt(q('#msa').value):null,score_b:q('#msb').value!==''?parseInt(q('#msb').value):null,is_final_result:q('#mss').value==='finished'};
+      const koResultEl=document.querySelector('input[name="mko_result"]:checked');
+      const koResult=koResultEl?koResultEl.value:'normal';
+      const wentToEt=koResult==='et'||koResult==='pen';
+      const wentToPen=koResult==='pen';
+      const penA=wentToPen&&q('#mpa')?.value!==''?parseInt(q('#mpa').value):null;
+      const penB=wentToPen&&q('#mpb')?.value!==''?parseInt(q('#mpb').value):null;
+      const payload={team_a:q('#mta').value,flag_a:q('#mfa').value,team_b:q('#mtb').value,flag_b:q('#mfb').value,kickoff_time:q('#mko').value,stage:q('#mst').value,group_name:q('#mgr').value||null,match_day:parseInt(q('#mmd').value)||1,status:q('#mss').value,score_a:q('#msa').value!==''?parseInt(q('#msa').value):null,score_b:q('#msb').value!==''?parseInt(q('#msb').value):null,is_final_result:q('#mss').value==='finished',went_to_et:wentToEt,went_to_penalties:wentToPen,penalty_score_a:penA,penalty_score_b:penB};
       if(editing){
         const {error}=await sb.from('wc_matches').update(payload).eq('id',editing.id);
         if(!error&&payload.status==='finished'&&payload.score_a!=null)await recalcPoints(editing.id,payload);
@@ -1407,19 +1475,50 @@ async function renderAdminMatches(m){
 
 async function recalcPoints(matchId,match){
   const sA=parseInt(match.score_a),sB=parseInt(match.score_b);
-  const act=sA>sB?'team_a':sB>sA?'team_b':'draw';
+  const isKnockout=match.stage&&match.stage!=='group';
+  const wentToPen=!!match.went_to_penalties;
+  const wentToEt=!!match.went_to_et;
+  let act; // actual match outcome for scoring: team_a / team_b / draw
+  let winnerTeamName=null;
+  if(isKnockout){
+    if(wentToPen){
+      // Decided by penalty shootout — use penalty_score_a/b to find winner
+      const pA=parseInt(match.penalty_score_a),pB=parseInt(match.penalty_score_b);
+      if(!isNaN(pA)&&!isNaN(pB)&&pA!==pB){
+        act=pA>pB?'team_a':'team_b';
+        winnerTeamName=pA>pB?match.team_a:match.team_b;
+      }else{
+        act=sA>sB?'team_a':sB>sA?'team_b':null; // fallback, shouldn't normally hit
+      }
+    }else{
+      // Decided in 90 or 120 minutes — no draw possible in knockout
+      act=sA>sB?'team_a':sB>sA?'team_b':null;
+      winnerTeamName=sA>sB?match.team_a:(sB>sA?match.team_b:null);
+    }
+  }else{
+    act=sA>sB?'team_a':sB>sA?'team_b':'draw';
+    winnerTeamName=sA>sB?match.team_a:(sB>sA?match.team_b:null);
+  }
   const {data:preds}=await sb.from('wc_predictions').select('*').eq('match_id',matchId);
   for(const pred of(preds||[])){
-    const isCorrect=pred.prediction===act;const bonus=pred.score_a===sA&&pred.score_b===sB;const pts=(isCorrect?3:0)+(bonus?2:0);
+    const isCorrect=act!==null&&pred.prediction===act;
+    // Exact score bonus always checks the regulation/full-time score (sA/sB), not penalties
+    const bonus=pred.score_a===sA&&pred.score_b===sB;
+    // Extra bonus point if knockout and player correctly called ET or Penalties
+    let etPenBonus=false;
+    if(isKnockout&&isCorrect){
+      if(wentToPen&&pred.penalties)etPenBonus=true;
+      else if(wentToEt&&!wentToPen&&pred.extra_time)etPenBonus=true;
+    }
+    const pts=(isCorrect?3:0)+(bonus?2:0)+(etPenBonus?1:0);
     await sb.from('wc_predictions').update({is_correct:isCorrect,bonus_correct:bonus,points_earned:pts}).eq('id',pred.id);
     const {data:allP}=await sb.from('wc_predictions').select('points_earned').eq('player_id',pred.player_id);
     await sb.from('wc_players').update({total_points:(allP||[]).reduce((a,b)=>a+b.points_earned,0)}).eq('id',pred.player_id);
     if(isCorrect){const {data:cb}=await sb.from('wc_predictions').select('id').eq('player_id',pred.player_id).eq('is_correct',true);if(cb?.length>=3)await sb.from('wc_badges').upsert({player_id:pred.player_id,badge_key:'hat_trick',badge_name:'Hat Trick',badge_name_ar:'هاتريك',badge_icon:'🎩'});}
     if(bonus)await sb.from('wc_badges').upsert({player_id:pred.player_id,badge_key:'exacto',badge_name:'Exacto',badge_name_ar:'المتقن',badge_icon:'📐'});
   }
-  if(match.stage==='final'&&sA!==sB){
-    const winner=sA>sB?match.team_a:match.team_b;
-    const {data:winners}=await sb.from('wc_players').select('id,total_points').eq('winner_pick',winner);
+  if(match.stage==='final'&&winnerTeamName){
+    const {data:winners}=await sb.from('wc_players').select('id,total_points').eq('winner_pick',winnerTeamName);
     for(const w of(winners||[])){await sb.from('wc_players').update({total_points:w.total_points+50}).eq('id',w.id);await sb.from('wc_badges').upsert({player_id:w.id,badge_key:'oracle',badge_name:'The Oracle',badge_name_ar:'العراف',badge_icon:'🔮'});}
   }
 }
