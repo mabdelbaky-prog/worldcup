@@ -1000,7 +1000,7 @@ async function renderMineTab(c){
         (showResult?'<div class="result-reveal '+(pred.is_correct?'ok':'bad')+'" style="padding:3px 10px;margin:0">'+(pred.is_correct?'✅ +'+pred.points_earned+t().pts:'❌ Wrong')+'</div>':'')+
         (m.status!=='finished'?'<span class="chip chip-upcoming">Pending</span>':'')+
       '</div>'+
-      (showRevBtn?'<button class="reveal-btn" style="margin-top:10px" data-rid="'+mineRid+'" onclick="doRevealById(this.dataset.rid)">👁️ '+(LANG='ar'?'اكشف نتيجتك':'Tap to Reveal')+'</button>':'')+
+      (showRevBtn?'<button class="reveal-btn" style="margin-top:10px" data-rid="'+mineRid+'" onclick="doRevealById(this.dataset.rid)">👁️ '+(LANG==='ar'?'اكشف نتيجتك':'Tap to Reveal')+'</button>':'')+
     '</div>';
   }).join('');
   c.innerHTML=html;
