@@ -830,11 +830,11 @@ function matchCardHTML(m,pred){
   revealHTML='<button class="reveal-btn" data-rid="'+revealId+'" onclick="doRevealById(this.dataset.rid)">👁️ '+(LANG==='ar'?'اكشف نتيجتك':'Tap to Reveal Your Result')+'</button>';
     }else{
       revealHTML='<div class="result-reveal '+(isCorrect?'ok':'bad')+'">'+(isCorrect?'✅ '+t().correct+' +'+pred.points_earned+t().pts:'❌ '+t().wrong)+'</div>';
-      // consensus meter (after kickoff)
-      revealHTML+='<div class="consensus-wrap" id="cons-'+m.id+'"><div class="consensus-lbl">Loading consensus...</div></div>';
     }
   }
-  predHTML='<div class="pred-area"><div class="pred-btns">'+btnHTML+'</div>'+scoreNote+revealHTML+'</div>';
+  // CONSENSUS METER: visible as soon as the player has voted, regardless of match status
+  const consensusHTML='<div class="consensus-wrap" id="cons-'+m.id+'" data-mid="'+m.id+'" data-iko="'+isKO+'"><div class="consensus-lbl">'+(LANG==='ar'?'جارٍ التحميل...':'Loading consensus...')+'</div></div>';
+  predHTML='<div class="pred-area"><div class="pred-btns">'+btnHTML+'</div>'+scoreNote+revealHTML+consensusHTML+'</div>';
   }else if(!pred&&isLocked){
     predHTML='<div style="margin-top:12px;text-align:center;color:var(--g6);font-size:13px">🔒 '+(LANG==='ar'?'انتهى وقت التنبؤ':'Prediction window closed')+'</div>';
   }
@@ -848,14 +848,11 @@ function matchCardHTML(m,pred){
 }
 
 function attachMatchHandlers(matches,pm){
-  // Load consensus for all revealed finished matches now that DOM exists
+  // Load consensus for every match the player has predicted (visible immediately after voting)
   matches.forEach(m=>{
-    if(m.status==='finished'){
-      const revealKey='revealed_'+PLAYER.id+'_'+m.id;
-      if(sessionStorage.getItem(revealKey)){
-        const isKO=m.stage!=='group';
-        loadConsensus(m.id,isKO);
-      }
+    if(pm[m.id]){
+      const isKO=m.stage!=='group';
+      loadConsensus(m.id,isKO);
     }
   });
   document.querySelectorAll('.pred-btn[data-pick]').forEach(btn=>{
