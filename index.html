@@ -562,6 +562,17 @@ function renderPlayer(app){
     '<div class="tab" id="ptab-hof" onclick="switchPTab(\'hof\')">🏛️ '+(LANG==='ar'?'قاعة الشهرة':'Hall of Fame')+'</div>';
   const content=document.createElement('div');content.id='ptab-content';content.style.paddingTop='8px';
   con.appendChild(tabs);con.appendChild(content);app.appendChild(con);
+window.switchPTab=function(tab){
+    ['matches','board','mine','story','hof'].forEach(t2=>{const e=q('#ptab-'+t2);if(e)e.className='tab'+(t2===tab?' active':'');});
+    loadPTabContent(tab);
+  };
+  sb.from('wc_players').select('winner_pick').eq('id',PLAYER.id).single().then(({data})=>{
+    if(data&&!data.winner_pick)renderWinnerModal();
+    loadPTabContent('matches');
+  });
+}
+
+// ── HELPER FUNCTIONS (moved to top-level scope) ──
   // STAGE THEME
 function applyStageTheme(stage){
   const themes={
@@ -705,15 +716,7 @@ function spawnConfetti(){
   }
 }
 
-window.switchPTab=function(tab){
-    ['matches','board','mine','story','hof'].forEach(t2=>{const e=q('#ptab-'+t2);if(e)e.className='tab'+(t2===tab?' active':'');});
-    loadPTabContent(tab);
-  };
-  sb.from('wc_players').select('winner_pick').eq('id',PLAYER.id).single().then(({data})=>{
-    if(data&&!data.winner_pick)renderWinnerModal();
-    loadPTabContent('matches');
-  });
-}
+
 
 function loadPTabContent(tab){
   const c=q('#ptab-content');if(!c)return;
