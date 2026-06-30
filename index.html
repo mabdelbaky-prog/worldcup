@@ -350,7 +350,15 @@ function fmtDate(iso){
   return new Date(iso).toLocaleString(LANG==='ar'?'ar-EG':'en-GB',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Africa/Cairo'});
 }
 function stageLabel(s){return t()[s]||s;}
-function outcome(m){if(m.score_a==null)return null;return m.score_a>m.score_b?'team_a':m.score_b>m.score_a?'team_b':'draw';}
+function outcome(m){
+  if(m.score_a==null)return null;
+  const isKO=m.stage&&m.stage!=='group';
+  if(isKO&&m.went_to_penalties&&m.penalty_score_a!=null&&m.penalty_score_b!=null){
+    return m.penalty_score_a>m.penalty_score_b?'team_a':'team_b';
+  }
+  if(isKO)return m.score_a>m.score_b?'team_a':(m.score_b>m.score_a?'team_b':null);
+  return m.score_a>m.score_b?'team_a':m.score_b>m.score_a?'team_b':'draw';
+}
 function genOTP(){return String(Math.floor(100000+Math.random()*900000));}
 
 const cdIntervals={};
@@ -848,10 +856,6 @@ function matchCardHTML(m,pred){
     }
   }
   predHTML='<div class="pred-area"><div class="pred-btns">'+btnHTML+'</div>'+scoreNote+revealHTML+'</div>';
-  // load consensus async after render
-  if(m.status!=='upcoming'&&alreadyRevealed){
-    setTimeout(()=>loadConsensus(m.id,isKO),100);
-  }
   }else if(!pred&&isLocked){
     predHTML='<div style="margin-top:12px;text-align:center;color:var(--g6);font-size:13px">🔒 '+(LANG==='ar'?'انتهى وقت التنبؤ':'Prediction window closed')+'</div>';
   }
@@ -865,6 +869,16 @@ function matchCardHTML(m,pred){
 }
 
 function attachMatchHandlers(matches,pm){
+  // Load consensus for all revealed finished matches now that DOM exists
+  matches.forEach(m=>{
+    if(m.status==='finished'){
+      const revealKey='revealed_'+PLAYER.id+'_'+m.id;
+      if(sessionStorage.getItem(revealKey)){
+        const isKO=m.stage!=='group';
+        loadConsensus(m.id,isKO);
+      }
+    }
+  });
   document.querySelectorAll('.pred-btn[data-pick]').forEach(btn=>{
     btn.addEventListener('click',function(){
       const pick=this.dataset.pick,mid=this.dataset.mid;
@@ -963,11 +977,20 @@ function renderBoard(rows,ptKey){
 // ── MY PREDICTIONS ──
 async function renderMineTab(c){
   c.innerHTML='<div class="ball-loader"><div class="ball"></div><div class="ball-track"><div class="ball-track-inner"></div></div></div>';
-  const [{data:preds},{data:bdgs},{data:me}]=await Promise.all([
-    sb.from('wc_predictions').select('*,wc_matches(*)').eq('player_id',PLAYER.id).order('created_at',{ascending:false}),
+  const [{data:rawPreds,error:predsErr},{data:bdgs},{data:me}]=await Promise.all([
+    sb.from('wc_predictions').select('*').eq('player_id',PLAYER.id).order('created_at',{ascending:false}).limit(500),
     sb.from('wc_badges').select('*').eq('player_id',PLAYER.id),
     sb.from('wc_players').select('total_points').eq('id',PLAYER.id).single()
   ]);
+  if(predsErr){c.innerHTML='<div style="text-align:center;color:var(--g6);padding:40px">Error loading predictions: '+predsErr.message+'</div>';return;}
+  // Fetch matches separately and merge manually (avoids fragile join syntax)
+  const matchIds=[...new Set((rawPreds||[]).map(p=>p.match_id))];
+  let matchesById={};
+  if(matchIds.length){
+    const {data:matchRows}=await sb.from('wc_matches').select('*').in('id',matchIds);
+    (matchRows||[]).forEach(m=>matchesById[m.id]=m);
+  }
+  const preds=(rawPreds||[]).map(p=>({...p,wc_matches:matchesById[p.match_id]||null}));
   const total=me?.total_points||0;const correct=(preds||[]).filter(p=>p.is_correct).length;const pct=preds?.length?Math.round(correct/preds.length*100):0;
   // PERSONA
   const exactAttempts=(preds||[]).filter(p=>p.score_a!=null).length;
@@ -1259,7 +1282,7 @@ async function renderAdminPredictions(m){
         const pred=freshMap[mx.id]||predMap[player.id]?.[mx.id];
         const isF=mx.status==='finished';
         const act=isF?outcome(mx):null;
-        const actLbl=act==='team_a'?mx.flag_a+' '+mx.team_a:act==='team_b'?mx.flag_b+' '+mx.team_b:'⚖️ Draw';
+        const actLbl=act==='team_a'?mx.flag_a+' '+mx.team_a+(mx.went_to_penalties?' (pens)':''):act==='team_b'?mx.flag_b+' '+mx.team_b+(mx.went_to_penalties?' (pens)':''):'⚖️ Draw';
         const predLbl=pred?(pred.prediction==='team_a'?mx.flag_a+' '+mx.team_a:pred.prediction==='team_b'?mx.flag_b+' '+mx.team_b:'⚖️ Draw'):'No pick';
         const bg=!pred?'rgba(113,128,150,.08)':!isF?'rgba(49,130,206,.08)':pred.is_correct?'rgba(56,161,105,.1)':'rgba(229,62,62,.08)';
         const border=!pred?'var(--g4)':!isF?'#3182ce':pred.is_correct?'var(--ok)':'var(--err)';
@@ -1274,7 +1297,7 @@ async function renderAdminPredictions(m){
         else{
           html+='<span style="color:'+(pred.is_correct?'#68d391':'#fc8181')+';font-weight:700;font-size:13px">'+(pred.is_correct?'✅':'❌')+' '+predLbl+'</span>';
           if(pred.score_a!=null)html+='<div style="font-size:11px;color:var(--g6)">Guessed: '+pred.score_a+'-'+pred.score_b+(pred.bonus_correct?' 🎯 Exact!':'')+'</div>';
-          html+='<div style="font-size:11px;color:var(--g6)">Actual: '+mx.score_a+'-'+mx.score_b+' ('+actLbl+')</div>';
+          html+='<div style="font-size:11px;color:var(--g6)">Actual: '+mx.score_a+'-'+mx.score_b+(mx.went_to_penalties&&mx.penalty_score_a!=null?' (pens '+mx.penalty_score_a+'-'+mx.penalty_score_b+')':'')+' ('+actLbl+')</div>';
           html+='<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;color:var(--gold)">+'+(pred.points_earned||0)+' pts</div>';
         }
         html+='</div>';
