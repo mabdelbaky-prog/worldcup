@@ -903,7 +903,7 @@ async function renderAdminPredictions(m){
     renderAdminPredictions(m);
   };
 
-  const render=()=>{
+  const render=async()=>{
     const filteredMs=activeStage==='all'?ms:ms.filter(x=>x.stage===activeStage);
     const finishedMs=filteredMs.filter(x=>x.status==='finished');
 
@@ -985,9 +985,12 @@ async function renderAdminPredictions(m){
       html+='<div class="stat-card" style="min-width:90px"><div class="stat-num" style="color:var(--ok)">'+stat.filteredCorrect+'</div><div class="stat-lbl">Correct</div></div>';
       html+='<div class="stat-card" style="min-width:90px"><div class="stat-num" style="color:var(--gold)">'+stat.filteredBonus+'</div><div class="stat-lbl">Exact Score</div></div>';
       html+='</div></div>';
+      // Fetch this player's predictions fresh from DB to avoid stale predMap
+      const {data:freshPreds}=await sb.from('wc_predictions').select('*').eq('player_id',player.id).limit(500);
+      const freshMap={};(freshPreds||[]).forEach(p=>freshMap[p.match_id]=p);
       html+='<div style="display:flex;flex-direction:column;gap:10px">';
       filteredMs.forEach(mx=>{
-        const pred=predMap[player.id]?.[mx.id];
+        const pred=freshMap[mx.id]||predMap[player.id]?.[mx.id];
         const isF=mx.status==='finished';
         const act=isF?outcome(mx):null;
         const actLbl=act==='team_a'?mx.flag_a+' '+mx.team_a:act==='team_b'?mx.flag_b+' '+mx.team_b:'⚖️ Draw';
