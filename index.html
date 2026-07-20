@@ -1231,7 +1231,7 @@ async function recalcPoints(matchId,match){
   }
   if(match.stage==='final'&&winnerTeam){
     const {data:winners}=await sb.from('wc_players').select('id,total_points').eq('winner_pick',winnerTeam);
-    for(const w of(winners||[])){await sb.from('wc_players').update({total_points:w.total_points+50}).eq('id',w.id);await sb.from('wc_badges').upsert({player_id:w.id,badge_key:'oracle',badge_name:'The Oracle',badge_name_ar:'العراف',badge_icon:'🔮'});}
+    for(const w of(winners||[])){await sb.from('wc_players').update({total_points:w.total_points+10}).eq('id',w.id);await sb.from('wc_badges').upsert({player_id:w.id,badge_key:'oracle',badge_name:'The Oracle',badge_name_ar:'العراف',badge_icon:'🔮'});}
   }
 }
 
